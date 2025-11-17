@@ -4,19 +4,37 @@ import getDb from '@/lib/mongodb';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // Expecting { level?: string, message: string, meta?: object, timestamp?: string }
-    const { level = 'info', message, meta = {}, timestamp } = body;
+    // Expecting { level?: string, message: string, meta?: object, timestamp?: string,
+    //             usuario_accion?, tabla_afectada?, accion?, detalle?, ip_origen?, sesion_id? }
+    const {
+      level = 'info',
+      message,
+      meta = {},
+      timestamp,
+      usuario_accion,
+      tabla_afectada,
+      accion,
+      detalle,
+      ip_origen,
+      sesion_id,
+    } = body;
     if (!message) {
       return NextResponse.json({ error: '`message` is required' }, { status: 400 });
     }
 
     const db = await getDb();
     const collection = db.collection('logs');
-    const doc = {
+    const doc: Record<string, unknown> = {
       level,
       message,
       meta,
-      timestamp: timestamp ? new Date(timestamp) : new Date(),
+      usuario_accion,
+      tabla_afectada,
+      accion,
+      detalle,
+      ip_origen,
+      sesion_id,
+      fecha_accion_db: timestamp ? new Date(timestamp) : new Date(),
     };
     const result = await collection.insertOne(doc);
     return NextResponse.json({ insertedId: result.insertedId }, { status: 201 });
